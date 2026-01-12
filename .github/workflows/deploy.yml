@@ -16,10 +16,10 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets.HOST }}          # GitHub Secrets에 저장된 새 IP
-          username: ec2-user                 # 아까 터미널에서 확인된 사용자 이름 (ec2-user)
+          host: ${{ secrets.HOST }}          # GitHub Secrets에 저장된 현재 EC2 IP
+          username: ec2-user                 # Amazon Linux 사용자의 경우 ec2-user
           key: ${{ secrets.SSH_KEY }}        # PEM 키 내용
           port: 22
           source: "./*"                      # 모든 파일과 images 폴더 포함
-          target: "/var/www/html"            # 배포될 경로
-          strip_components: 1                # 중요! 'aa' 폴더를 제거하고 내용물만 배포
+          target: "/usr/share/nginx/html"    # Nginx가 실제로 파일을 읽는 경로 (중요!)
+          strip_components: 1                # 'aa' 폴더 포장지를 벗기고 내용물만 배포
