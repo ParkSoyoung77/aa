@@ -2,7 +2,7 @@ name: EC2 Hosting from S3
 
 on:
   push:
-    branches: [ "main" ]  # main 브랜치에 푸시될 때 실행
+    branches: [ "main" ]
 
 jobs:
   deploy:
@@ -11,31 +11,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 1. AWS 자격 증명 설정 (S3 접근용)
+      # 1. AWS 자격 증명 설정
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-2 # 본인의 리전으로 수정 (서울은 ap-northeast-2)
+          aws-region: ap-northeast-2
 
-      # 2. S3로 파일 업로드 (빌드 파일이 있다면 해당 경로로 수정)
+      # 2. S3로 파일 업로드 (버킷 이름 적용)
       - name: Sync S3
         run: |
-          aws s3 sync . s3://본인의-S3-버킷-이름 --exclude ".git/*" --exclude ".github/*"
+          aws s3 sync . s3://soyoung-bucket-0109 --exclude ".git/*" --exclude ".github/*"
 
-      # 3. EC2에 접속하여 S3 파일 Pull 받기
+      # 3. EC2에 접속하여 S3 파일 가져오기
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
           script: |
-            # S3에서 최신 파일을 EC2 웹 서버 경로로 동기화
-            # 주의: /var/www/html 폴더에 쓰기 권한이 있어야 합니다.
-            aws s3 sync s3://본인의-S3-버킷-이름 /var/www/html
+            # EC2 내부에서 S3 파일을 웹 서버 경로로 동기화
+            aws s3 sync s3://soyoung-bucket-0109 /var/www/html
             
-            # (선택) Nginx 재시작이 필요한 경우
+            # Nginx 재시작 (필요한 경우 주석 해제)
             # sudo systemctl restart nginx
