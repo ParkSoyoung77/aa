@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>SQL Quiz System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
+</head>
+<body>
+    <div class="quiz-container">
+        <div id="start-view" style="text-align:center;">
+            <h2 style="color:#0d6efd;">SQL 이해도 평가</h2>
+            <input type="text" id="username" placeholder="성명을 입력하세요" style="width:100%; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px; box-sizing:border-box;">
+            <button class="next-btn" style="width:100%;" onclick="startApp()">평가 시작</button>
+        </div>
+
+        <div id="quiz-view" style="display:none;">
+            <div id="q-header" class="question-header"></div>
+            <div id="option-list" class="options-group">
+                </div>
+            <div class="quiz-footer">
+                <button id="submit-btn" class="next-btn" onclick="goToNext()" disabled>다음</button>
+            </div>
+        </div>
+
+        <div id="end-view" style="display:none; text-align:center;">
+            <h1 style="font-size:3rem;">🎉</h1>
+            <h2>수고하셨습니다!</h2>
+            <p style="color:#666;">평가 데이터가 MariaDB에 기록되었습니다.</p>
+            <button class="next-btn" onclick="location.reload()">다시 하기</button>
+        </div>
+    </div>
+
+    <script>
+        let questions = [];
+        let currentIdx = 0;
+        let userName = "";
+        let selectedIdx = null;
+
+        async function startApp() {
+            userName = document.getElementById('username').value;
+            if(!userName) return alert("이름을 입력해주세요.");
+            
+            const res = await fetch('/api/questions');
+            questions = await res.json();
+            
+            document.getElementById('start-view').style.display = 'none';
+            document.getElementById('quiz-view').style.display = 'block';
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = questions[currentIdx];
+            selectedIdx = null;
+            document.getElementById('submit-btn').disabled = true;
+
+            document.getElementById('q-header').innerText = `${currentIdx + 1}. ${q.question}`;
+            
+            const container = document.getElementById('option-list');
+            container.innerHTML = '';
+
+            const opts = [q.option_1, q.option_2, q.option_3, q.option_4];
+            const labels = ['A', 'B', 'C', 'D']; // 이미지 스타일처럼 접두어 추가 가능
+
+            opts.forEach((text, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = `${labels[i]}. ${text}`;
+                
+                btn.onclick = () => {
+                    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedIdx = i + 1;
+                    document.getElementById('submit-btn').disabled = false;
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        async function goToNext() {
+            const q = questions[currentIdx];
+            const isCorrect = (selectedIdx === q.answer_idx) ? 1 : 0;
+
+            await fetch('/api/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    user_name: userName,
+                    quiz_id: q.quiz_id,
+                    is_correct: isCorrect
+                })
+            });
+
+            currentIdx++;
+            if(currentIdx < questions.length) loadQuestion();
+            else {
+                document.getElementById('quiz-view').style.display = 'none';
+                document.getElementById('end-view').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
