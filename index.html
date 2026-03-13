@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>물품 보관함 예약 시스템 </title>
+    <style>
+        body { font-family: 'Pretendard', -apple-system, sans-serif; line-height: 1.6; max-width: 500px; margin: 0 auto; padding: 20px; background: #f0f2f5; }
+        .page { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: none; }
+        .active { display: block; }
+        h1, h2 { color: #1a1a1a; text-align: center; margin-bottom: 20px; }
+        
+        /* 메인 버튼 및 레이아웃 */
+        .station-btns, .locker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+        .locker-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        
+        button { padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:active { transform: scale(0.98); }
+        
+        .btn-station { background: #007bff; color: white; }
+        .btn-station:hover { background: #0056b3; }
+        
+        /* 사물함 스타일 */
+        .locker { background: #f8f9fa; border: 2px solid #e9ecef; font-size: 16px; }
+        .occupied { background: #ff4d4f !important; color: white; cursor: not-allowed; border-color: #ff4d4f; }
+        .available { background: #52c41a !important; color: white; border-color: #52c41a; }
+        
+        /* 입력창 및 공통 버튼 */
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 14px; color: #666; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        
+        .btn-main { width: 100%; background: #333; color: white; margin-top: 10px; font-size: 16px; }
+        .btn-secondary { width: 100%; background: #6c757d; color: white; margin-top: 8px; }
+        
+        /* 관리자 테이블 */
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        .admin-table th, .admin-table td { border: 1px solid #eee; padding: 10px; text-align: center; }
+        .admin-table th { background: #f8f9fa; }
+        
+        /* NFS 백업 섹션 */
+        .nfs-box { background: #fffbe6; padding: 15px; border-radius: 10px; border: 1px solid #ffe58f; margin-top: 25px; }
+        .nfs-title { font-weight: bold; color: #856404; display: flex; align-items: center; gap: 5px; }
+        .btn-backup { width: 100%; background: #faad14; color: white; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="page1" class="page active">
+        <h1>🚄 물품 보관함</h1>
+        <p style="text-align: center; color: #666;">짐 없이 가볍게 여행하세요!</p>
+        <div class="station-btns">
+            <button class="btn-station" onclick="showPage('page2')">서울역</button>
+            <button class="btn-station" onclick="showPage('page2')">부산역</button>
+            <button class="btn-station" onclick="showPage('page2')">대구역</button>
+        </div>
+        <button class="btn-main" onclick="showPage('page5')">🔍 내 예약 확인하기</button>
+        <button class="btn-secondary" onclick="showPage('page6')">⚙️ 관리자 모드</button>
+    </div>
+
+    <div id="page2" class="page">
+        <h2>📍 사물함 현황</h2>
+        <div class="locker-grid">
+            <script>
+                // 12개의 사물함을 생성 (임시 데이터)
+                const states = [1,0,1,1,0,1,1,1,1,0,1,1]; // 1: 가능, 0: 사용중
+                for(let i=1; i<=12; i++) {
+                    const isAvail = states[i-1];
+                    document.write(`<button class="locker ${isAvail ? 'available' : 'occupied'}" 
+                        ${isAvail ? `onclick="showPage('page3')"` : ''}>${i < 10 ? '0'+i : i}</button>`);
+                }
+            </script>
+        </div>
+        <p style="font-size: 12px; color: #999; text-align: center;">초록색: 예약 가능 | 빨간색: 사용 중</p>
+        <button class="btn-main" onclick="showPage('page1')">뒤로가기</button>
+    </div>
+
+    <div id="page3" class="page">
+        <h2>📝 예약 신청</h2>
+        <div class="input-group">
+            <label>선택한 사물함</label>
+            <input type="text" value="01번 사물함" disabled style="background: #eee;">
+        </div>
+        <div class="input-group">
+            <label>비밀번호 (4자리)</label>
+            <input type="password" placeholder="비밀번호 설정">
+        </div>
+        <div class="input-group">
+            <label>연락처</label>
+            <input type="text" placeholder="'-' 없이 숫자만 입력">
+        </div>
+        <button class="btn-station" style="width:100%" onclick="showPage('page4')">예약 확정하기</button>
+        <button class="btn-main" style="background:#aaa" onclick="showPage('page2')">취소</button>
+    </div>
+
+    <div id="page4" class="page">
+        <h2 style="color: #52c41a;">✅ 예약 성공!</h2>
+        <div style="text-align: center; margin: 20px 0; padding: 20px; border: 2px dashed #52c41a; border-radius: 10px;">
+            <p style="margin: 0; color: #666;">예약 번호</p>
+            <h1 style="margin: 5px 0; color: #52c41a;">LOCKER-01</h1>
+        </div>
+        <p style="text-align: center; font-size: 14px; color: #666;">사물함 번호와 비밀번호를 꼭 기억해주세요.</p>
+        <button class="btn-main" onclick="showPage('page1')">홈으로 이동</button>
+    </div>
+
+    <div id="page5" class="page">
+    <h2>🔍 예약 정보 확인</h2>
+    <div class="input-group">
+        <label>이용 지역 선택</label>
+        <select id="check_station" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+            <option value="seoul">서울역</option>
+            <option value="busan">부산역</option>
+            <option value="daegu">대구역</option>
+        </select>
+    </div>
+    <div class="input-group">
+        <label>사물함 번호</label>
+        <input type="text" id="check_num" placeholder="예: 01">
+    </div>
+    <div class="input-group">
+        <label>비밀번호</label>
+        <input type="password" id="check_pw" placeholder="비밀번호 입력">
+    </div>
+    <button class="btn-station" style="width:100%" onclick="checkReservation()">확인하기</button>
+    <button class="btn-main" onclick="showPage('page1')">뒤로가기</button>
+</div>
+
+
+
+<div id="page6" class="page">
+    <h2>🛠️ 관리자 시스템</h2>
+
+    <div style="margin-top: 20px;">
+        <h3 style="font-size: 15px; color: #333;">📦 전체 사물함 운영 현황</h3>
+<table class="admin-table">
+    <thead>
+        <tr>
+            <th>지역</th>
+            <th>번호</th>
+            <th>상태</th>
+            <th>액션</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>서울역</td>
+            <td>01</td>
+            <td><b style="color: #ff4d4f;">사용 중</b></td> <td><button style="background: #ff4d4f; color: white;" onclick="resetLocker('seoul', '01')">강제 비우기</button></td>
+        </tr>
+        <tr>
+            <td>부산역</td>
+            <td>05</td>
+            <td><b style="color: #52c41a;">사용 가능</b></td> <td>-</td> </tr>
+    </tbody>
+</table>
+    </div>
+
+    <div class="nfs-box" style="background: #f0f5ff; border-color: #adc6ff; margin-top: 25px;">
+        <div class="nfs-title" style="color: #1d39c4;">📄 시스템 로그 관리</div>
+        <button class="btn-backup" style="background: #2f54eb;" onclick="location.href='/api/admin/download-log'">에러 로그(.log) 다운로드</button>
+    </div>
+
+    <div class="nfs-box" style="background: #fff7e6; border-color: #ffd591; margin-top: 15px;">
+        <div class="nfs-title" style="color: #d46b08;">📊 실시간 인프라 모니터링</div>
+        <button class="btn-backup" style="background: #fa8c16;" onclick="window.open('http://[Grafana-IP]:3000', '_blank')">그라파나 대시보드 열
+
+    <script>
+    // 페이지 전환 함수 (이게 있어야 버튼이 작동합니다)
+    function showPage(pageId) {
+        const pages = document.querySelectorAll('.page');
+        pages.forEach(page => page.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        window.scrollTo(0,0);
+    }
+
+    // 예약 정보 확인 함수
+    function checkReservation() {
+        const station = document.getElementById('check_station');
+        const stationName = station.options[station.selectedIndex].text; 
+        const num = document.getElementById('check_num').value;
+        const pw = document.getElementById('check_pw').value;
+
+        if(num !== "" && pw !== "") {
+            // 실제 환경에서는 여기서 API를 호출해 DB 값을 확인합니다.
+            alert(`✅ 확인 완료: 현재 [${stationName}] ${num}번 사물함을 사용 중입니다.`);
+        } else {
+            alert("❌ 역, 번호, 비밀번호를 모두 입력해주세요.");
+        }
+    }
+    </script>
+</body>
+</html>
