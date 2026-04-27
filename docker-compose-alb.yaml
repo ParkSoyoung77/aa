@@ -16,10 +16,10 @@ services:
   # docker-install (Nginx)
   service-docker-install:
     image: soyoung0/nginx:1.29.7-docker-install
-    build:
-      context: ./docker-install
-      dockerfile: Dockerfile
-      platforms: ["linux/amd64", "linux/arm64"]
+    # build:
+    #   context: ./docker-install
+    #   dockerfile: Dockerfile
+    #   platforms: ["linux/amd64", "linux/arm64"]
     container_name: docker-install-nginx-container
     restart: always
     ports:
