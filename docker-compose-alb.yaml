@@ -27,17 +27,16 @@ services:
     networks:
       - board-network
 
-  # docker-command
-  service-docker-command:
-    image: soyoung0/nginx:1.29.7-docker-command
+  # api-service(fastapi)
+  api-service:
+    image: soyoung0/fastapi-api-server
     # build:
-    #   context: ./docker-command
+    #   context: ./api-server
     #   dockerfile: Dockerfile
-    #   platforms: ["linux/amd64", "linux/arm64"]
-    container_name: docker-command-nginx-container
+    container_name: docker-api-container
     restart: always
     ports:
-      - "8082:80"
+      - "8082:8082"
     networks:
       - board-network
 
