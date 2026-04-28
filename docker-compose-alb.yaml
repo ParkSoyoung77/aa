@@ -1,5 +1,5 @@
 services:
-  # main 서비스 (Nginx)
+  # 1. Main 서비스 (Nginx)
   service-docker-main:
     image: soyoung0/nginx:1.29.7-docker-main
     # build:
@@ -13,7 +13,7 @@ services:
     networks:
       - board-network
 
-  # docker-install (Nginx)
+  # 2. Docker Install 서비스 (Nginx)
   service-docker-install:
     image: soyoung0/nginx:1.29.7-docker-install
     # build:
@@ -27,18 +27,101 @@ services:
     networks:
       - board-network
 
-  # api-service(fastapi)
-  api-service:
-    image: soyoung0/fastapi-api-server
+  # 3. Docker Command 서비스 (Nginx)
+  service-docker-command:
+    image: soyoung0/nginx:1.29.7-docker-command
     # build:
-    #   context: ./api-server
+    #   context: ./docker-command
     #   dockerfile: Dockerfile
-    container_name: docker-api-container
+    #   platforms: ["linux/amd64", "linux/arm64"]
+    container_name: docker-command-nginx-container
     restart: always
     ports:
-      - "8082:8082"
+      - "8082:80"
     networks:
       - board-network
+
+  # 4. Docker Build 서비스 (Nginx)
+  service-docker-build:
+    image: soyoung0/nginx:1.29.7-docker-build
+    # build:
+    #   context: ./docker-build
+    #   dockerfile: Dockerfile
+    #   platforms: ["linux/amd64", "linux/arm64"]
+    container_name: docker-build-nginx-container
+    restart: always
+    ports:
+      - "8083:80"
+    networks:
+      - board-network
+
+  # 5. Docker Compose 서비스 (Nginx)
+  service-docker-compose:
+    image: soyoung0/nginx:1.29.7-docker-compose
+    # build:
+    #   context: ./docker-compose
+    #   dockerfile: Dockerfile
+    #   platforms: ["linux/amd64", "linux/arm64"]
+    container_name: docker-compose-nginx-container
+    restart: always
+    ports:
+      - "8084:80"
+    networks:
+      - board-network
+
+  # 6. Docker Swarm 서비스 (Nginx)
+  service-docker-swarm:
+    image: soyoung0/nginx:1.29.7-docker-swarm
+    # build:
+    #   context: ./docker-swarm
+    #   dockerfile: Dockerfile
+    #   platforms: ["linux/amd64", "linux/arm64"]
+    container_name: docker-swarm-nginx-container
+    restart: always
+    ports:
+      - "8085:80"
+    networks:
+      - board-network
+
+  # 7. Kubernetes 서비스 (FastAPI 단독)
+  service-kubernetes:
+    image: soyoung0/fastapi:kubernetes
+    # build:
+    #   context: ./kubernetes
+    #   dockerfile: Dockerfile
+    container_name: docker-kubernetes-fastapi-container
+    restart: always
+    ports:
+      - "8086:8086"
+    networks:
+      - board-network
+
+  # 8-1. Board API 서비스 (FastAPI)
+  service-board-api:
+    image: soyoung0/fastapi:board-api
+    # build:
+    #   context: ./board/fastapi
+    #   dockerfile: Dockerfile
+    container_name: board-fastapi-container
+    restart: always
+    networks:
+      - board-network
+
+  # 8-2. Board 서비스 (Nginx 프록시)
+  service-docker-board:
+    image: soyoung0/nginx:1.29.7-docker-board
+    # build:
+    #   context: ./board/nginx
+    #   dockerfile: Dockerfile
+    #   platforms: ["linux/amd64", "linux/arm64"]
+    container_name: docker-board-nginx-container
+    restart: always
+    ports:
+      - "8087:80"
+    networks:
+      - board-network
+    depends_on:
+      - service-board-api
 
 networks:
   board-network:
